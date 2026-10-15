@@ -1,799 +1,930 @@
 <!DOCTYPE html>
-<html lang="th" class="light">
+<html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Created By ST Team</title>
-    
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบกระจายงาน · ST Team</title>
 
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        slate: { 850: '#1e293b' }
-                    }
-                }
-            }
-        }
-    </script>
+<script src="https://unpkg.com/vue@3.4.38/dist/vue.global.prod.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <style>
-        body { font-family: 'Sarabun', sans-serif; }
-        
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .dark ::-webkit-scrollbar-thumb { background: #475569; }
-        
-        .card { transition: all 0.3s ease; }
-        .card:hover { transform: translateY(-2px); }
-        
-        /* Animations */
-        .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
-        .fade-enter-from, .fade-leave-to { opacity: 0; }
-        .list-move, .list-enter-active, .list-leave-active { transition: all 0.4s ease; }
-        .list-enter-from, .list-leave-to { opacity: 0; transform: translateX(-20px); }
-        .list-leave-active { position: absolute; }
-        
-        .animate-fade-in-up { animation: fadeInUp 0.5s ease-out; }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+<style>
+/* ======================================================
+   Theme A — "Wanheng Bold" สว่าง เหลือง-ดำ ตัวหนา Prompt
+   ====================================================== */
+:root{
+  --bg:#F6F5F0; --card:#fff; --ink:#141414; --muted:#6b6a63; --line:#E6E3D8;
+  --y:#EBC50E; --y-soft:#FCF4CC; --y-ink:#7A6400; --k:#111;
+  --ok:#24661A; --ok-bg:#E3F4E1; --bad:#A82A1F; --bad-bg:#FDE6E4; --ac:#1D4F91; --ac-bg:#E3EDFA;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:'Prompt',sans-serif;color:var(--ink);background:var(--bg);font-size:14px;min-height:100vh}
+[v-cloak]{display:none}
+button,input,select,textarea{font:inherit;color:inherit}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:#d6d3c6;border-radius:4px}
 
-        /* Drag & Drop Styles */
-        .draggable-item { cursor: grab; }
-        .draggable-item:active { cursor: grabbing; }
-        .drop-zone { transition: all 0.2s; }
-        .drop-zone.drag-over { 
-            background-color: rgba(99, 102, 241, 0.1); 
-            border: 2px dashed #6366f1; 
-            transform: scale(1.02);
-        }
-        .dark .drop-zone.drag-over { 
-            background-color: rgba(99, 102, 241, 0.2); 
-            border-color: #818cf8;
-        }
+/* ---------- top bar ---------- */
+.top{background:var(--k);color:#fff;display:flex;align-items:center;gap:16px;padding:0 24px;height:64px;position:relative;overflow:hidden}
+.top::after{content:"";position:absolute;right:-40px;top:0;bottom:0;width:260px;pointer-events:none;
+  background:repeating-linear-gradient(-60deg,transparent 0 18px,var(--y) 18px 34px);opacity:.9;
+  -webkit-mask:linear-gradient(90deg,transparent,#000 70%);mask:linear-gradient(90deg,transparent,#000 70%)}
+.top img{height:34px}
+.top .name{font-weight:800;letter-spacing:.5px;font-size:17px;line-height:1.05}
+.top .name small{display:block;font-weight:400;font-size:11px;color:#bbb;letter-spacing:1px}
+.top .tools{margin-left:auto;display:flex;gap:6px;position:relative;z-index:1;background:var(--k);padding:6px;border-radius:999px}
+.top .tools button,.top .tools label{background:transparent;border:1px solid #444;color:#ddd;border-radius:999px;padding:6px 14px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.top .tools button:hover,.top .tools label:hover{background:var(--y);color:#111;border-color:var(--y)}
 
-        .btn-tool {
-            @apply px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1 shadow-sm transform active:scale-95;
-        }
+main{max-width:1400px;margin:0 auto;padding:26px 24px 40px}
+h1.title{font-size:28px;font-weight:700;margin:0}
+h1.title span{background:linear-gradient(transparent 62%,var(--y) 62%)}
+.sub{color:var(--muted);margin:4px 0 20px;font-size:14px}
 
-        /* --- IMPORTANT: CSS สำหรับจัดหน้า PDF --- */
-        .break-inside-avoid {
-            break-inside: avoid;
-            page-break-inside: avoid; /* สำหรับ Browser เก่า */
-        }
-    </style>
+.layout{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:20px;align-items:start}
+@media (max-width:1100px){.layout{grid-template-columns:1fr}}
+
+/* ---------- panels / buttons ---------- */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:18px}
+.panel-h{display:flex;align-items:center;gap:8px;padding:14px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.panel-h h3{margin:0;font-size:17px;font-weight:600;margin-right:auto;display:flex;align-items:center;gap:8px}
+.panel-h h3 .ico{width:30px;height:30px;border-radius:8px;background:var(--y);display:grid;place-items:center;font-size:14px;color:#111}
+.panel-b{padding:14px 18px}
+.btn{font:600 14px 'Prompt';border:0;border-radius:10px;padding:9px 16px;background:var(--y);color:#111;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s}
+.btn:hover{filter:brightness(.95)}
+.btn:active{transform:scale(.97)}
+.btn.ghost{background:transparent;border:1.5px solid #111;padding:7.5px 14px}
+.btn.ghost:hover{background:#111;color:var(--y)}
+.btn.dark{background:#111;color:var(--y)}
+.btn.sm{font-size:12.5px;padding:6px 11px;border-radius:8px}
+.btn.ghost.sm{padding:4.5px 10px}
+.link{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:12px;padding:0}
+.link:hover{color:var(--bad)}
+.icon-btn{background:none;border:0;color:#b9b6a8;cursor:pointer;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;flex-shrink:0}
+.icon-btn:hover{color:var(--bad);background:var(--bad-bg)}
+.inp{border:1.5px solid var(--line);border-radius:9px;padding:7px 10px;background:#fafaf7;outline:none;min-width:0}
+.inp:focus{border-color:#111;background:#fff}
+.inp.err{border-color:var(--bad);background:var(--bad-bg)}
+
+/* ---------- employees ---------- */
+.emp-head,.emp-row{display:grid;grid-template-columns:28px 1fr 92px 28px;gap:8px;align-items:center}
+.emp-head{font-size:12px;color:var(--muted);padding:0 4px 6px}
+.emp-list{max-height:280px;overflow:auto;display:flex;flex-direction:column;gap:6px;padding-right:2px}
+.emp-row{background:#FAF9F4;border:1px solid transparent;border-radius:10px;padding:5px 4px}
+.emp-row:hover{border-color:var(--line);background:#fff}
+.emp-row .no{text-align:center;color:var(--muted);font-size:12px}
+.cap{position:relative}
+.cap input{width:100%;text-align:center;padding-right:20px}
+.cap span{position:absolute;right:9px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--muted);pointer-events:none}
+.cap.hi input{border-color:#b8dcb2;background:var(--ok-bg);color:var(--ok);font-weight:600}
+.cap.lo input{border-color:#f0dc8a;background:var(--y-soft);color:var(--y-ink);font-weight:600}
+
+/* ---------- zones / tasks ---------- */
+.zones{max-height:620px;overflow:auto;display:flex;flex-direction:column;gap:12px;padding-right:2px}
+.zone{border:1px solid var(--line);border-left:5px solid var(--zc);border-radius:12px;overflow:hidden}
+.zone-h{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#FAF9F4;border-bottom:1px solid var(--line)}
+.zone-h input{flex:1;border:0;background:transparent;font-weight:600;font-size:15px;outline:none;border-bottom:1.5px solid transparent;padding:2px 0}
+.zone-h input:focus{border-bottom-color:#111}
+.zone-h .sum{font-size:12px;color:var(--muted);white-space:nowrap}
+.zone-b{padding:10px}
+.seg{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:10px;padding:3px;margin-bottom:8px}
+.seg button{border:0;background:none;padding:4px 12px;border-radius:7px;font-size:12px;cursor:pointer;color:var(--muted)}
+.seg button.on{background:#111;color:var(--y);font-weight:600}
+.add-row{display:flex;gap:6px}
+.add-row .inp:first-child{flex:1}
+.add-row .inp.num{width:84px;text-align:center}
+textarea.inp{width:100%;resize:vertical;font-family:ui-monospace,Consolas,monospace;font-size:12.5px}
+.items{margin-top:8px;max-height:170px;overflow:auto;display:flex;flex-direction:column;gap:4px}
+.item{display:flex;align-items:center;gap:8px;font-size:13px;padding:4px 6px 4px 8px;border-radius:8px;background:#FAF9F4}
+.item .n{color:var(--muted);font-size:11px;width:20px}
+.item .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .v{font-weight:700;background:var(--y-soft);color:var(--y-ink);padding:0 8px;border-radius:6px;font-variant-numeric:tabular-nums}
+.empty{text-align:center;color:#aaa69a;font-size:12.5px;padding:14px;border:1.5px dashed var(--line);border-radius:10px;margin-top:8px}
+
+.opts{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.chk{display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:13.5px}
+.chk input{accent-color:#111;width:16px;height:16px;margin-top:2px}
+.chk small{display:block;color:var(--muted);font-size:12px}
+.go{width:100%;justify-content:center;font-size:17px;padding:15px;border-radius:14px;box-shadow:0 6px 0 -1px #111}
+.go:hover{box-shadow:0 4px 0 -1px #111;transform:translateY(2px)}
+
+/* ---------- results ---------- */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+@media (max-width:640px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.kpi b{display:block;font-size:26px;font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums}
+.kpi small{color:var(--muted);font-size:12.5px}
+.kpi.hl{background:#111;color:#fff;border-color:#111}
+.kpi.hl b{color:var(--y)}
+.kpi.hl small{color:#bbb}
+.stale{display:flex;align-items:center;gap:10px;background:var(--y-soft);color:var(--y-ink);border:1px solid #f0dc8a;border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:13.5px}
+.stale .btn{margin-left:auto}
+.buckets{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+.bucket{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;transition:.15s}
+.bucket.drag-over{border-color:#111;box-shadow:0 0 0 3px var(--y);transform:scale(1.01)}
+.bucket-h{padding:12px 14px 10px;border-bottom:1px solid var(--line);position:relative}
+.bucket-h .row{display:flex;align-items:center;gap:10px}
+.bucket-h .badge{width:30px;height:30px;border-radius:50%;background:#111;color:var(--y);display:grid;place-items:center;font-weight:700;font-size:13px;flex-shrink:0}
+.bucket-h .who{flex:1;min-width:0}
+.bucket-h .who b{display:block;font-size:15.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bucket-h .who small{color:var(--muted);font-size:12px}
+.bucket-h .tot{text-align:right}
+.bucket-h .tot b{font-size:22px;line-height:1;font-variant-numeric:tabular-nums}
+.bucket-h .tot small{display:block;color:var(--muted);font-size:11px}
+.meter{height:6px;background:#eee;border-radius:9px;overflow:hidden;margin-top:10px;position:relative}
+.meter i{display:block;height:100%;background:#111;border-radius:9px;transition:width .4s}
+.meter.over i{background:var(--bad)}
+.meter::after{content:"";position:absolute;left:calc(100% / 1.3);top:-2px;bottom:-2px;width:2px;background:var(--y)}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:600;white-space:nowrap}
+.p-ok{background:var(--ok-bg);color:var(--ok)}.p-wt{background:var(--y-soft);color:var(--y-ink)}.p-bad{background:var(--bad-bg);color:var(--bad)}.p-ac{background:var(--ac-bg);color:var(--ac)}
+.tasks{padding:8px 10px;flex:1;min-height:90px;display:flex;flex-direction:column;gap:4px}
+.task{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:8px;background:#FAF9F4;border:1px solid transparent;cursor:grab;font-size:13px}
+.task:hover{border-color:var(--line);background:#fff}
+.task.dragging{opacity:.4}
+.task .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.task input{border:0;background:transparent;outline:none;border-bottom:1px solid transparent;padding:1px 0;min-width:0}
+.task input:focus{border-bottom-color:#111}
+.task input.nm{flex:1}
+.task input.v{width:52px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.task select{border:1px solid var(--line);background:#fff;border-radius:6px;font-size:11px;padding:1px 2px;max-width:70px;color:var(--muted);cursor:pointer}
+.bucket .free{flex:1;display:grid;place-items:center;color:#aaa69a;font-size:12.5px;text-align:center}
+.bucket-f{padding:7px 14px;border-top:1px solid var(--line);font-size:12px;color:var(--muted);display:flex;justify-content:space-between;background:#FAF9F4}
+.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--muted);margin-bottom:12px}
+.legend span{display:flex;align-items:center;gap:5px}
+.legend i{width:9px;height:9px;border-radius:50%;display:block}
+.placeholder{border:2px dashed #d6d3c6;border-radius:14px;min-height:480px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);text-align:center;padding:24px}
+.placeholder .big{width:84px;height:84px;border-radius:22px;background:var(--y);display:grid;place-items:center;font-size:36px;color:#111;margin-bottom:16px;box-shadow:0 8px 0 -2px #111}
+.placeholder h3{color:var(--ink);margin:0 0 6px;font-size:20px}
+
+.toast{position:fixed;top:78px;right:20px;z-index:60;background:#111;color:#fff;padding:12px 16px;border-radius:12px;box-shadow:0 10px 30px #0003;display:flex;gap:10px;align-items:center;max-width:360px;border-left:5px solid var(--y)}
+.toast.error{border-left-color:#e5483b}
+.toast i{color:var(--y);font-size:18px}
+.toast.error i{color:#ff7b70}
+.fade-enter-active,.fade-leave-active{transition:opacity .25s,transform .25s}
+.fade-enter-from,.fade-leave-to{opacity:0;transform:translateY(-8px)}
+
+@media (max-width:640px){
+  main{padding:18px 12px 30px}
+  .top{padding:0 12px}
+  .top .name small{display:none}
+  .top .tools span.t{display:none}
+}
+
+/* ======================================================
+   Print sheet (ใช้ทั้งตอนพิมพ์ และตอนสร้างรูปภาพ)
+   ====================================================== */
+#sheet{display:none;background:#fff;color:#111;font-family:'Prompt',sans-serif}
+#sheet.capture{display:block;position:fixed;left:-20000px;top:0;width:1120px;padding:28px}
+.sh-head{display:flex;align-items:center;gap:14px;border-bottom:3px solid #111;padding-bottom:10px;margin-bottom:12px}
+.sh-head .logo{background:#111;border-radius:8px;padding:6px 10px;display:flex}
+.sh-head .logo img{height:26px}
+.sh-head h2{margin:0;font-size:20px;line-height:1.2}
+.sh-head h2 span{background:linear-gradient(transparent 60%,var(--y) 60%)}
+.sh-head .meta{margin-left:auto;text-align:right;font-size:11.5px;color:#444;line-height:1.5}
+.sh-kpis{display:flex;gap:8px;margin-bottom:12px}
+.sh-kpis div{flex:1;border:1px solid #ccc;border-radius:8px;padding:6px 10px;font-size:11px;color:#555}
+.sh-kpis b{display:block;font-size:17px;color:#111}
+.sh-kpis .hl{background:#111;color:#bbb;border-color:#111}
+.sh-kpis .hl b{color:var(--y)}
+.sh-grid{columns:2;column-gap:12px}
+.sh-card{break-inside:avoid;page-break-inside:avoid;border:1px solid #bbb;border-radius:8px;margin:0 0 12px;overflow:hidden;display:inline-block;width:100%}
+.sh-card-h{display:flex;align-items:center;gap:8px;background:#111;color:#fff;padding:6px 10px}
+.sh-card-h .no{background:var(--y);color:#111;border-radius:50%;width:22px;height:22px;display:grid;place-items:center;font-weight:700;font-size:11px}
+.sh-card-h b{flex:1;font-size:14px}
+.sh-card-h .t{font-size:12px;color:#ddd}
+.sh-card-h .t b{color:var(--y);font-size:15px}
+table.sh{width:100%;border-collapse:collapse;font-size:11.5px}
+table.sh th{background:#f3f2ec;text-align:left;font-weight:600;padding:4px 8px;border-bottom:1px solid #ccc}
+table.sh td{padding:3.5px 8px;border-bottom:1px solid #e6e6e6}
+table.sh td.num,table.sh th.num{text-align:right;font-variant-numeric:tabular-nums;width:60px}
+table.sh td.zn{color:#555;width:90px}
+table.sh tfoot td{font-weight:700;border-top:1.5px solid #111;border-bottom:0;background:#fafaf4}
+.zdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}
+/* ใบงานรายคน */
+.ws{page-break-after:always;break-after:page}
+.ws:last-child{page-break-after:auto;break-after:auto}
+.ws-name{display:flex;align-items:flex-end;gap:16px;margin:4px 0 12px}
+.ws-name .big{font-size:28px;font-weight:700;line-height:1.1}
+.ws-name .big span{background:linear-gradient(transparent 60%,var(--y) 60%)}
+.ws-name .info{margin-left:auto;display:flex;gap:8px}
+.ws-name .info div{border:1.5px solid #111;border-radius:8px;padding:4px 12px;text-align:center;font-size:11px}
+.ws-name .info b{display:block;font-size:20px}
+table.ws-t{width:100%;border-collapse:collapse;font-size:13px}
+table.ws-t th{background:#111;color:#fff;font-weight:500;padding:6px 8px;text-align:left}
+table.ws-t td{padding:7px 8px;border-bottom:1px solid #ccc}
+table.ws-t td.num,table.ws-t th.num{text-align:right;width:70px;font-variant-numeric:tabular-nums}
+table.ws-t td.box{width:46px;text-align:center}
+table.ws-t td.box i{display:inline-block;width:16px;height:16px;border:1.5px solid #111;border-radius:3px}
+table.ws-t tr.zrow td{background:#f3f2ec;font-weight:600;font-size:12px;padding:4px 8px}
+table.ws-t tfoot td{font-weight:700;font-size:14px;border-top:2px solid #111;border-bottom:0}
+.sign{display:flex;gap:40px;margin-top:36px;font-size:12px}
+.sign div{flex:1;text-align:center}
+.sign div i{display:block;border-bottom:1px dotted #111;height:30px;margin-bottom:4px}
+.sh-foot{margin-top:8px;font-size:10px;color:#888;text-align:right}
+
+@page{size:A4 portrait;margin:10mm}
+@media print{
+  body{background:#fff}
+  #app > .top, #app > main, .toast{display:none !important}
+  #sheet{display:block !important;position:static;width:auto;padding:0}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
 </head>
-<body class="p-4 md:p-8 min-h-screen transition-colors duration-300 bg-slate-50 text-slate-700 dark:bg-slate-900 dark:text-slate-200">
+<body>
+<div id="app" v-cloak>
 
-    <div id="app" class="max-w-[1400px] mx-auto">
-        
-        <div class="mb-8 relative">
-            <div class="flex justify-end gap-2 mb-2">
-                 <button @click="saveDataToFile" class="btn-tool bg-blue-50 text-blue-600 dark:bg-slate-800 dark:text-blue-400 border border-blue-100 dark:border-slate-700">
-                    <i class="fa-solid fa-download"></i> Save Data
-                </button>
-                <label class="btn-tool bg-gray-50 text-gray-600 dark:bg-slate-800 dark:text-gray-400 border border-gray-100 dark:border-slate-700 cursor-pointer">
-                    <i class="fa-solid fa-upload"></i> Load Data
-                    <input type="file" @change="loadDataFromFile" class="hidden" accept=".json">
-                </label>
-                <button @click="toggleDarkMode" class="btn-tool bg-slate-200 text-slate-600 dark:bg-yellow-400 dark:text-yellow-900 border border-slate-300 dark:border-yellow-500 ml-2">
-                    <i class="fa-solid" :class="isDarkMode ? 'fa-sun' : 'fa-moon'"></i>
-                </button>
-            </div>
-
-            <div class="text-center">
-                <h1 class="text-3xl md:text-4xl font-bold text-indigo-700 dark:text-indigo-400 mb-2 drop-shadow-sm flex justify-center items-center gap-3">
-                    <i class="fa-solid fa-scale-balanced"></i>
-                    ระบบกระจายงาน V0.1
-                </h1>
-                <p class="text-gray-500 dark:text-gray-400 text-lg">Created By SHU</p>
-            </div>
-            
-            <transition name="fade">
-                <div v-if="toast.show" 
-                     class="fixed top-5 right-5 z-50 px-4 py-3 rounded-lg shadow-xl text-white font-medium flex items-center gap-3 max-w-sm"
-                     :class="toast.type === 'error' ? 'bg-red-500' : 'bg-emerald-600'">
-                    <i :class="toast.type === 'error' ? 'fa-solid fa-circle-exclamation text-xl' : 'fa-solid fa-circle-check text-xl'"></i>
-                    <div>
-                        <div class="font-bold text-sm opacity-90">{{ toast.type === 'error' ? 'เกิดข้อผิดพลาด' : 'สำเร็จ' }}</div>
-                        <div class="text-sm">{{ toast.message }}</div>
-                    </div>
-                </div>
-            </transition>
-        </div>
-
-        <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
-            
-            <div class="xl:col-span-5 space-y-6">
-                
-                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-indigo-100 dark:border-slate-700 card relative overflow-hidden transition-colors">
-                    <div class="absolute top-0 left-0 w-1.5 h-full bg-indigo-500"></div>
-                    <div class="flex justify-between items-center mb-4 pl-3">
-                        <h2 class="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
-                            <i class="fa-solid fa-users text-indigo-500"></i> จำนวนพนักงาน ({{ employees.length }})
-                        </h2>
-                        <div class="space-x-2">
-                            <button @click="resetEmployees" class="text-xs text-gray-400 hover:text-red-500 underline transition">รีเซ็ต</button>
-                            <button @click="addEmployee" class="bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 px-3 py-1.5 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 text-sm font-semibold transition shadow-sm border border-indigo-100 dark:border-indigo-800">
-                                <i class="fa-solid fa-plus"></i> เพิ่มคน
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="flex text-xs text-gray-400 mb-2 px-2 font-medium uppercase tracking-wide">
-                        <div class="w-8 text-center">#</div>
-                        <div class="flex-1">ชื่อ</div>
-                        <div class="w-24 text-center cursor-help" title="ความสามารถในการรับงาน (100% = ปกติ)">Capacity %</div>
-                        <div class="w-6"></div>
-                    </div>
-
-                    <div class="space-y-2 max-h-[250px] overflow-y-auto pr-1 custom-scrollbar relative">
-                        <transition-group name="list">
-                            <div v-for="(emp, index) in employees" :key="emp.id" class="flex items-center gap-2 group bg-gray-50 dark:bg-slate-700/50 p-1.5 rounded border border-transparent hover:border-indigo-200 dark:hover:border-indigo-500 hover:bg-white dark:hover:bg-slate-700 transition duration-200">
-                                <span class="text-gray-400 w-8 text-center text-sm font-mono">{{ index + 1 }}</span>
-                                <input type="text" v-model="emp.name" 
-                                    class="flex-1 bg-transparent border-b border-gray-200 dark:border-slate-600 focus:border-indigo-500 focus:outline-none text-sm py-1 transition text-gray-700 dark:text-gray-200 font-medium placeholder-gray-300" 
-                                    placeholder="ชื่อพนักงาน">
-                                
-                                <div class="w-24 flex items-center justify-center relative">
-                                    <input type="number" v-model.number="emp.capacity" min="10" max="300" step="10"
-                                        class="w-16 text-center bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded text-xs py-1 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 outline-none transition dark:text-white"
-                                        :class="getCapacityColor(emp.capacity)">
-                                    <span class="absolute right-2 text-[10px] text-gray-400 pointer-events-none">%</span>
-                                </div>
-
-                                <button @click="removeEmployee(index)" class="text-gray-300 hover:text-red-500 w-6 h-6 flex items-center justify-center transition rounded-full hover:bg-red-50 dark:hover:bg-red-900/30">
-                                    <i class="fa-solid fa-xmark text-xs"></i>
-                                </button>
-                            </div>
-                        </transition-group>
-                    </div>
-                </div>
-
-                <div class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm border border-orange-100 dark:border-slate-700 card relative overflow-hidden transition-colors">
-                    <div class="absolute top-0 left-0 w-1.5 h-full bg-orange-500"></div>
-                    <div class="flex justify-between items-center mb-4 pl-3">
-                        <h2 class="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
-                            <i class="fa-solid fa-boxes-stacked text-orange-500"></i> รายการงาน ({{ totalTasksCount }})
-                        </h2>
-                        <div class="space-x-2">
-                            <button @click="resetTaskSets" class="text-xs text-gray-400 hover:text-red-500 underline transition">ล้างงาน</button>
-                            <button @click="addTaskSet" class="bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300 px-3 py-1.5 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/50 text-sm font-semibold transition shadow-sm border border-orange-100 dark:border-orange-800">
-                                <i class="fa-solid fa-plus"></i> เพิ่มชุดงาน
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar pb-20">
-                        <transition-group name="list">
-                            <div v-for="(set, setIndex) in taskSets" :key="set.id" 
-                                 class="border rounded-lg bg-white dark:bg-slate-700 relative transition-all duration-300 group shadow-sm hover:shadow-md"
-                                 :class="setIndex === 0 ? 'border-l-4 border-l-orange-400 border-y-gray-200 dark:border-y-slate-600 border-r-gray-200 dark:border-r-slate-600' : 'border-gray-200 dark:border-slate-600 hover:border-orange-300'">
-                                
-                                <div class="bg-gray-50/80 dark:bg-slate-600/50 p-3 border-b border-gray-100 dark:border-slate-600 flex justify-between items-center">
-                                    <div class="flex items-center gap-2 flex-1">
-                                        <span class="w-3 h-3 rounded-full shadow-sm ring-2 ring-white dark:ring-slate-500" :class="getDotColor(setIndex)"></span>
-                                        <input type="text" v-model="set.setName" 
-                                            class="bg-transparent font-bold text-gray-700 dark:text-gray-200 text-sm focus:outline-none border-b border-transparent focus:border-orange-300 w-full hover:border-gray-300 dark:hover:border-slate-500 transition"
-                                            placeholder="ชื่อโซน...">
-                                    </div>
-                                    <button @click="removeTaskSet(setIndex)" class="text-gray-300 hover:text-red-600 text-xs transition px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30">
-                                        <i class="fa-regular fa-trash-can"></i>
-                                    </button>
-                                </div>
-                                
-                                <div class="p-3 bg-white dark:bg-slate-700 space-y-3">
-                                    
-                                    <div class="flex gap-2 mb-2">
-                                        <button @click="set.mode = 'single'" class="text-[10px] px-2 py-1 rounded-md transition" :class="set.mode === 'single' ? 'bg-orange-100 text-orange-700 font-bold dark:bg-orange-900 dark:text-orange-200' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-600'">รายชิ้น</button>
-                                        <button @click="set.mode = 'bulk'" class="text-[10px] px-2 py-1 rounded-md transition" :class="set.mode === 'bulk' ? 'bg-indigo-100 text-indigo-700 font-bold dark:bg-indigo-900 dark:text-indigo-200' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-600'">วางด่วน (Excel)</button>
-                                    </div>
-
-                                    <div v-if="set.mode === 'single'" class="flex gap-2 items-center">
-                                        <input type="text" v-model="set.tempName" 
-                                            @keyup.enter="focusNextInput($event)"
-                                            class="flex-1 border border-gray-200 dark:border-slate-500 bg-white dark:bg-slate-800 text-gray-800 dark:text-white rounded px-2 py-1.5 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-200 outline-none"
-                                            placeholder="ชื่อร้าน (เช่น ShopName)">
-                                        <input type="number" v-model.number="set.tempValue" 
-                                            @keyup.enter="addItemToSet(set)"
-                                            class="w-20 border border-gray-200 dark:border-slate-500 bg-white dark:bg-slate-800 text-gray-800 dark:text-white rounded px-2 py-1.5 text-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-200 outline-none text-center"
-                                            placeholder="จำนวน">
-                                        <button @click="addItemToSet(set)" class="bg-orange-500 text-white px-3 py-1.5 rounded hover:bg-orange-600 text-xs shadow-sm transition active:scale-95">
-                                            <i class="fa-solid fa-plus"></i>
-                                        </button>
-                                    </div>
-
-                                    <div v-else>
-                                        <textarea v-model="set.bulkInput" rows="3"
-                                            class="w-full border border-gray-200 dark:border-slate-500 rounded p-2 text-xs font-mono focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 outline-none resize-none bg-gray-50 dark:bg-slate-800 dark:text-white placeholder-gray-400"
-                                            placeholder="วางข้อมูลจาก Excel (ชื่อ เว้นวรรค จำนวน)&#10;JobA 50&#10;JobB 20"></textarea>
-                                        <button @click="parseBulkInput(set)" class="w-full mt-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-300 py-1 rounded text-xs hover:bg-indigo-100 dark:hover:bg-indigo-900/50 border border-indigo-200 dark:border-indigo-800 font-semibold">
-                                            <i class="fa-solid fa-magic-wand-sparkles"></i> แปลงข้อมูล
-                                        </button>
-                                    </div>
-
-                                    <div class="mt-2" v-if="set.items.length > 0">
-                                        <div class="flex justify-between text-[10px] text-gray-400 mb-1 px-1">
-                                            <span>รายการ</span>
-                                            <span>จำนวน</span>
-                                        </div>
-                                        <div class="max-h-[150px] overflow-y-auto custom-scrollbar space-y-1">
-                                            <div v-for="(item, iIndex) in set.items" :key="iIndex" 
-                                                class="flex justify-between items-center text-xs bg-gray-50 dark:bg-slate-800 px-2 py-1 rounded border border-gray-100 dark:border-slate-600 group/item hover:bg-white dark:hover:bg-slate-600 hover:border-gray-200 dark:hover:border-slate-500 hover:shadow-sm">
-                                                <div class="flex items-center gap-2 overflow-hidden">
-                                                    <span class="text-gray-400 text-[10px] w-4">{{ iIndex + 1 }}.</span>
-                                                    <span class="font-medium text-gray-700 dark:text-gray-200 truncate max-w-[150px]" :title="item.name">{{ item.name }}</span>
-                                                </div>
-                                                <div class="flex items-center gap-3">
-                                                    <span class="font-mono font-bold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 px-1.5 rounded">{{ item.value }}</span>
-                                                    <button @click="removeItemFromSet(set, iIndex)" class="text-gray-300 hover:text-red-500 transition">
-                                                        <i class="fa-solid fa-xmark"></i>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="text-right mt-1 text-[10px] text-gray-400">
-                                            รวม: <span class="font-bold text-gray-600 dark:text-gray-300">{{ sumSet(set).toLocaleString() }}</span>
-                                        </div>
-                                    </div>
-                                    <div v-else class="text-center py-4 text-gray-300 text-xs border border-dashed border-gray-200 dark:border-slate-600 rounded bg-gray-50/50 dark:bg-slate-800/50">
-                                        ยังไม่มีรายการ
-                                    </div>
-
-                                </div>
-                            </div>
-                        </transition-group>
-                    </div>
-                </div>
-
-                <button @click="calculateDistribution" 
-                    class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-indigo-200 dark:shadow-none transition transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 text-lg group overflow-hidden relative z-10">
-                    <div class="absolute inset-0 bg-white/10 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                    <i class="fa-solid fa-rocket group-hover:animate-bounce"></i> 
-                    <span>คำนวณและกระจายงาน</span>
-                </button>
-
-            </div>
-
-            <div class="xl:col-span-7">
-                
-                <div v-if="distributedResults.length > 0" class="animate-fade-in-up h-full flex flex-col">
-                    
-                    <div class="flex flex-wrap gap-2 mb-4 justify-between items-center bg-white dark:bg-slate-800 p-2 rounded-lg shadow-sm border border-gray-100 dark:border-slate-700">
-                        <div class="flex items-center pl-3 text-sm text-gray-500 dark:text-gray-400 font-medium">
-                           <i class="fa-solid fa-chart-pie mr-2 text-indigo-500"></i> ผลลัพธ์ (ลากย้ายได้)
-                        </div>
-                        <div class="flex gap-2">
-                            <button @click="exportToExcel" class="btn-tool bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50 border border-green-200 dark:border-green-800">
-                                <i class="fa-regular fa-file-excel text-lg"></i> Excel
-                            </button>
-                            <button @click="exportToImage" class="btn-tool bg-purple-50 text-purple-700 hover:bg-purple-100 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-800">
-                                <i class="fa-regular fa-image text-lg"></i> Image
-                            </button>
-                            <button @click="exportToPDF" class="btn-tool bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50 border border-red-200 dark:border-red-800">
-                                <i class="fa-regular fa-file-pdf text-lg"></i> PDF
-                            </button>
-                            <button @click="copyText" class="btn-tool bg-gray-50 text-gray-700 hover:bg-gray-100 dark:bg-slate-700 dark:text-gray-300 dark:hover:bg-slate-600 border border-gray-200 dark:border-slate-600">
-                                <i class="fa-regular fa-copy text-lg"></i> Copy
-                            </button>
-                        </div>
-                    </div>
-
-                    <div id="export-area" class="bg-white dark:bg-slate-800 p-6 md:p-8 rounded-xl shadow-lg border border-gray-100 dark:border-slate-700 relative flex-1 transition-colors">
-                        
-                        <div class="absolute top-4 right-4 text-gray-100 dark:text-slate-700 text-6xl font-bold opacity-30 select-none pointer-events-none">
-                            SHU - ST Team
-                        </div>
-
-                        <div class="text-center mb-8 border-b border-gray-200 dark:border-slate-700 pb-6">
-                            <h2 class="text-2xl font-bold text-gray-800 dark:text-white">สรุปผลการกระจายงาน</h2>
-                            <p class="text-gray-400 text-xs mt-1">
-                                <i class="fa-regular fa-clock"></i> ข้อมูล ณ วันที่ {{ new Date().toLocaleString('th-TH') }}
-                            </p>
-                            
-                            <div class="grid grid-cols-3 gap-4 mt-6 max-w-2xl mx-auto">
-                                <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg text-center border border-blue-100 dark:border-blue-900 card">
-                                    <div class="text-xs text-blue-500 font-bold uppercase tracking-wide mb-1">Total</div>
-                                    <div class="text-xl font-bold text-blue-700 dark:text-blue-400">{{ grandTotalItems }} <span class="text-sm font-normal text-blue-400">ร้าน</span></div>
-                                </div>
-                                <div class="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg text-center border border-green-100 dark:border-green-900 card">
-                                    <div class="text-xs text-green-500 font-bold uppercase tracking-wide mb-1">Total Weight / รวม</div>
-                                    <div class="text-xl font-bold text-green-700 dark:text-green-400">{{ grandTotalWeight.toLocaleString() }} <span class="text-[10px] font-normal text-green-500">รายการ</span></div>
-                                </div>
-                                <div class="bg-indigo-50 dark:bg-indigo-900/20 p-3 rounded-lg text-center border border-indigo-100 dark:border-indigo-900 card">
-                                    <div class="text-xs text-indigo-500 font-bold uppercase tracking-wide mb-1">MEAN Avg. / คนละ</div>
-                                    <div class="text-xl font-bold text-indigo-700 dark:text-indigo-400">~{{ totalCapacityPoints > 0 ? (grandTotalWeight / totalCapacityPoints * 100).toFixed(0) : 0 }} <span class="text-[10px] font-normal">รายการ</span></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div v-for="(result, bucketIndex) in distributedResults" :key="bucketIndex" 
-                                 class="drop-zone break-inside-avoid border rounded-lg overflow-hidden flex flex-col h-full bg-white dark:bg-slate-700 shadow-sm hover:shadow-md transition group border-gray-200 dark:border-slate-600"
-                                 @dragover.prevent="handleDragOver"
-                                 @drop="handleDrop($event, bucketIndex)"
-                                 @dragenter="handleDragEnter"
-                                 @dragleave="handleDragLeave">
-                                
-                                <div class="p-3 border-b border-gray-100 dark:border-slate-600 bg-gray-50 dark:bg-slate-600/50 flex justify-between items-start relative overflow-hidden">
-                                    <div class="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-1000" 
-                                         :style="{ width: Math.min(getLoadPercentage(result.totalWeight, result.capacity), 100) + '%' }"></div>
-
-                                    <div class="flex items-center gap-3 z-10 w-full">
-                                        <div class="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-500 text-gray-600 dark:text-gray-300 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shadow-sm flex-shrink-0">
-                                            {{ bucketIndex + 1 }}
-                                        </div>
-                                        <div class="flex-1 min-w-0">
-                                            <div class="flex justify-between items-center">
-                                                <h3 class="font-bold text-gray-800 dark:text-white leading-tight truncate pr-2">{{ result.employeeName }}</h3>
-                                                <div class="font-bold text-lg text-indigo-700 dark:text-indigo-400 leading-none whitespace-nowrap">{{ result.totalWeight.toLocaleString() }}</div>
-                                            </div>
-                                            
-                                            <div class="flex justify-between items-center mt-1">
-                                                <div class="text-[10px] text-gray-500 dark:text-gray-400 flex gap-2 items-center">
-                                                    <span class="bg-gray-200 dark:bg-slate-600 px-1.5 rounded text-gray-600 dark:text-gray-300" title="Capacity"><i class="fa-solid fa-gauge-high mr-1"></i>{{ result.capacity }}%</span>
-                                                </div>
-                                                <div v-if="result.tasks.length > 0" 
-                                                     class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-white dark:bg-slate-800 border shadow-sm"
-                                                     :class="getLoadColorClass(getLoadPercentage(result.totalWeight, result.capacity))">
-                                                    Load: {{ getLoadPercentage(result.totalWeight, result.capacity) }}%
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="p-3 bg-white dark:bg-slate-700 flex-1 min-h-[100px]">
-                                    <div v-if="result.tasks.length === 0" class="h-full flex flex-col items-center justify-center text-gray-300 dark:text-gray-500 text-sm py-4">
-                                        <i class="fa-solid fa-mug-hot text-2xl mb-2 opacity-50"></i>
-                                        <span>ว่างงาน (ลากงานมาใส่ได้)</span>
-                                    </div>
-                                    <div v-else class="space-y-1.5">
-                                        <div v-for="(task, tIndex) in result.tasks" :key="tIndex" 
-                                             draggable="true"
-                                             @dragstart="handleDragStart($event, bucketIndex, tIndex)"
-                                             class="draggable-item flex justify-between items-center text-xs px-2 py-1.5 rounded border border-gray-100 dark:border-slate-600 bg-gray-50/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-600 hover:shadow-sm transition select-none group/task">
-                                            
-                                            <div class="flex items-center gap-2 overflow-hidden flex-1">
-                                                <span class="w-2 h-2 rounded-full flex-shrink-0 cursor-grab" :class="getDotColor(task.originalSetIndex)"></span>
-                                                <input v-model="task.name" class="bg-transparent border-b border-transparent hover:border-gray-300 focus:border-indigo-500 focus:outline-none w-full text-gray-700 dark:text-gray-200 font-medium" />
-                                            </div>
-                                            <input type="number" v-model.number="task.value" @change="recalcBucketWeight(bucketIndex)" class="w-12 text-right bg-transparent border-b border-transparent hover:border-gray-300 focus:border-indigo-500 focus:outline-none font-mono font-bold text-gray-500 dark:text-gray-400" />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="bg-gray-50 dark:bg-slate-600/50 px-3 py-2 text-[10px] text-gray-400 dark:text-gray-400 border-t border-gray-100 dark:border-slate-600 flex justify-between items-center">
-                                    <span><i class="fa-solid fa-cubes mr-1"></i>จำนวน {{ result.tasks.length }} งาน</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div v-else class="h-full flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 border-2 border-dashed border-gray-300 dark:border-slate-700 rounded-xl bg-gray-50/50 dark:bg-slate-800/30 min-h-[500px]">
-                    <div class="w-24 h-24 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center mb-6 text-5xl shadow-sm border border-gray-100 dark:border-slate-700">
-                        <i class="fa-solid fa-calculator text-indigo-200 dark:text-indigo-800"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-500 dark:text-gray-400 mb-2">พร้อมคำนวณงาน</h3>
-                    <p class="text-sm max-w-xs text-center text-gray-400 dark:text-gray-500">เพิ่ม "ชื่องาน" และ "จำนวน" ทางซ้ายมือ<br>ระบบจะกระจายงานให้อัตโนมัติ</p>
-                </div>
-
-            </div>
-        </div>
+  <!-- ===== top bar ===== -->
+  <div class="top">
+    <img :src="logo" alt="">
+    <div class="name">WANHENG<small>ST TEAM · ระบบกระจายงาน</small></div>
+    <div class="tools">
+      <button @click="saveDataToFile" title="บันทึกข้อมูลเป็นไฟล์ .json"><i class="fa-solid fa-download"></i><span class="t">Save</span></button>
+      <label title="โหลดข้อมูลจากไฟล์ .json"><i class="fa-solid fa-upload"></i><span class="t">Load</span>
+        <input type="file" @change="loadDataFromFile" accept=".json" hidden>
+      </label>
     </div>
+  </div>
 
-    <script>
-        const { createApp } = Vue;
+  <transition name="fade">
+    <div v-if="toast.show" class="toast" :class="toast.type">
+      <i :class="toast.type === 'error' ? 'fa-solid fa-circle-exclamation' : 'fa-solid fa-circle-check'"></i>
+      <div>{{ toast.message }}</div>
+    </div>
+  </transition>
 
-        createApp({
-            data() {
-                return {
-                    isDarkMode: false,
-                    draggedItem: null,
-                    employees: [
-                        { name: 'พนักงาน 1', capacity: 100, id: 1 },
-                        { name: 'พนักงาน 2', capacity: 100, id: 2 },
-                        { name: 'พนักงาน 3', capacity: 100, id: 3 }
-                    ],
-                    taskSets: [
-                        { 
-                            id: 1, 
-                            setName: "โซน 1", 
-                            mode: 'single', 
-                            tempName: '', tempValue: '', bulkInput: '',
-                            items: [
-                                { name: "Job A", value: 50 },
-                                { name: "Job B", value: 30 },
-                                { name: "Job C", value: 20 }
-                            ] 
-                        }
-                    ],
-                    distributedResults: [],
-                    toast: { show: false, message: '', type: 'success' },
-                    
-                    colors: [
-                        { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', dot: 'bg-red-500' },
-                        { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200', dot: 'bg-orange-500' },
-                        { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', dot: 'bg-blue-500' },
-                        { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', dot: 'bg-emerald-500' },
-                        { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200', dot: 'bg-purple-500' },
-                        { bg: 'bg-pink-50', text: 'text-pink-700', border: 'border-pink-200', dot: 'bg-pink-500' },
-                        { bg: 'bg-cyan-50', text: 'text-cyan-700', border: 'border-cyan-200', dot: 'bg-cyan-500' },
-                        { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-200', dot: 'bg-yellow-500' },
-                    ]
-                }
-            },
-            mounted() {
-                this.loadFromStorage();
-                this.initTheme();
-            },
-            watch: {
-                employees: { handler() { this.saveToStorage(); }, deep: true },
-                taskSets: { handler() { this.saveToStorage(); }, deep: true }
-            },
-            computed: {
-                grandTotalWeight() { return this.distributedResults.reduce((sum, res) => sum + res.totalWeight, 0); },
-                grandTotalItems() { return this.distributedResults.reduce((sum, res) => sum + res.tasks.length, 0); },
-                totalCapacityPoints() { return this.distributedResults.reduce((sum, res) => sum + res.capacity, 0); },
-                totalTasksCount() { return this.taskSets.reduce((sum, set) => sum + set.items.length, 0); }
-            },
-            methods: {
-                // --- Dark Mode ---
-                toggleDarkMode() {
-                    this.isDarkMode = !this.isDarkMode;
-                    if(this.isDarkMode) document.documentElement.classList.add('dark');
-                    else document.documentElement.classList.remove('dark');
-                    localStorage.setItem('jd_dark_mode', this.isDarkMode);
-                },
-                initTheme() {
-                    const saved = localStorage.getItem('jd_dark_mode');
-                    if(saved === 'true') {
-                        this.isDarkMode = true;
-                        document.documentElement.classList.add('dark');
-                    }
-                },
+  <main>
+    <h1 class="title"><span>กระจายงาน</span> ให้ทีม</h1>
+    <p class="sub">ใส่รายชื่อพนักงาน + รายการงานแต่ละโซน แล้วกดคำนวณ · ระบบจะแบ่งให้ใกล้เคียงกันที่สุดตาม Capacity ของแต่ละคน</p>
 
-                // --- Drag & Drop Logic ---
-                handleDragStart(evt, bucketIndex, taskIndex) {
-                    this.draggedItem = { bucketIndex, taskIndex };
-                    evt.dataTransfer.effectAllowed = 'move';
-                },
-                handleDragOver(evt) {
-                    evt.preventDefault(); 
-                    evt.dataTransfer.dropEffect = 'move';
-                    return false;
-                },
-                handleDragEnter(evt) { evt.currentTarget.classList.add('drag-over'); },
-                handleDragLeave(evt) { evt.currentTarget.classList.remove('drag-over'); },
-                handleDrop(evt, toBucketIndex) {
-                    evt.currentTarget.classList.remove('drag-over');
-                    
-                    if (!this.draggedItem) return;
-                    
-                    const { bucketIndex: fromBucketIndex, taskIndex } = this.draggedItem;
-                    if (fromBucketIndex === toBucketIndex) return;
+    <div class="layout">
+      <!-- ================= LEFT: inputs ================= -->
+      <div>
+        <!-- employees -->
+        <div class="panel">
+          <div class="panel-h">
+            <h3><span class="ico"><i class="fa-solid fa-users"></i></span>พนักงาน ({{ activeEmployees.length }})</h3>
+            <button class="link" @click="resetEmployees">รีเซ็ต</button>
+            <button class="btn sm" @click="addEmployee"><i class="fa-solid fa-plus"></i> เพิ่มคน</button>
+          </div>
+          <div class="panel-b">
+            <div class="emp-head"><div style="text-align:center">#</div><div>ชื่อ</div><div style="text-align:center" title="ความสามารถในการรับงาน (100% = ปกติ)">Capacity</div><div></div></div>
+            <div class="emp-list">
+              <div v-for="(emp, i) in employees" :key="emp.id" class="emp-row">
+                <span class="no">{{ i + 1 }}</span>
+                <input class="inp" v-model="emp.name" placeholder="ชื่อพนักงาน">
+                <div class="cap" :class="emp.capacity > 100 ? 'hi' : (emp.capacity < 100 ? 'lo' : '')">
+                  <input class="inp" type="number" v-model.number="emp.capacity" min="10" max="300" step="10" @blur="emp.capacity = clampCap(emp.capacity)">
+                  <span>%</span>
+                </div>
+                <button class="icon-btn" @click="removeEmployee(i)" title="ลบ"><i class="fa-solid fa-xmark"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
 
-                    const taskToMove = this.distributedResults[fromBucketIndex].tasks[taskIndex];
-                    
-                    this.distributedResults[fromBucketIndex].tasks.splice(taskIndex, 1);
-                    this.distributedResults[fromBucketIndex].totalWeight -= taskToMove.value;
-                    this.distributedResults[fromBucketIndex].totalWeight = parseFloat(this.distributedResults[fromBucketIndex].totalWeight.toFixed(2));
+        <!-- zones -->
+        <div class="panel">
+          <div class="panel-h">
+            <h3><span class="ico"><i class="fa-solid fa-boxes-stacked"></i></span>รายการงาน ({{ totalTasksCount }})</h3>
+            <button class="link" @click="resetTaskSets">ล้างงาน</button>
+            <button class="btn sm" @click="addTaskSet"><i class="fa-solid fa-plus"></i> เพิ่มโซน</button>
+          </div>
+          <div class="panel-b">
+            <div class="zones">
+              <div v-for="(set, si) in taskSets" :key="set.id" class="zone" :style="{ '--zc': zoneColor(si) }">
+                <div class="zone-h">
+                  <input v-model="set.setName" placeholder="ชื่อโซน...">
+                  <span class="sum">{{ set.items.length }} ร้าน · {{ fmt(sumSet(set)) }}</span>
+                  <button class="icon-btn" @click="removeTaskSet(si)" title="ลบโซน"><i class="fa-regular fa-trash-can"></i></button>
+                </div>
+                <div class="zone-b">
+                  <div class="seg">
+                    <button :class="{ on: set.mode === 'single' }" @click="set.mode = 'single'">รายชิ้น</button>
+                    <button :class="{ on: set.mode === 'bulk' }" @click="set.mode = 'bulk'">วางจาก Excel</button>
+                  </div>
 
-                    this.distributedResults[toBucketIndex].tasks.push(taskToMove);
-                    this.distributedResults[toBucketIndex].totalWeight += taskToMove.value;
-                    this.distributedResults[toBucketIndex].totalWeight = parseFloat(this.distributedResults[toBucketIndex].totalWeight.toFixed(2));
+                  <div v-if="set.mode === 'single'" class="add-row">
+                    <input class="inp" v-model="set.tempName" placeholder="ชื่อร้าน" @keyup.enter="$event.target.nextElementSibling.focus()">
+                    <input class="inp num" type="number" v-model.number="set.tempValue" placeholder="จำนวน" min="0" @keyup.enter="addItemToSet(set, $event)">
+                    <button class="btn sm dark" @click="addItemToSet(set)"><i class="fa-solid fa-plus"></i></button>
+                  </div>
+                  <div v-else>
+                    <textarea class="inp" v-model="set.bulkInput" rows="4" placeholder="วางจาก Excel ได้เลย (คอลัมน์ ชื่อ | จำนวน)&#10;ShopA	50&#10;ShopB	1,200&#10;ShopC 20"></textarea>
+                    <button class="btn sm ghost" style="width:100%;justify-content:center;margin-top:6px" @click="parseBulkInput(set)">
+                      <i class="fa-solid fa-wand-magic-sparkles"></i> แปลงข้อมูล
+                    </button>
+                  </div>
 
-                    this.draggedItem = null;
-                },
-                recalcBucketWeight(bucketIndex) {
-                    const bucket = this.distributedResults[bucketIndex];
-                    bucket.totalWeight = bucket.tasks.reduce((sum, t) => sum + t.value, 0);
-                },
+                  <div v-if="set.items.length" class="items">
+                    <div v-for="(item, ii) in set.items" :key="ii" class="item">
+                      <span class="n">{{ ii + 1 }}.</span>
+                      <span class="nm" :title="item.name">{{ item.name }}</span>
+                      <span class="v">{{ fmt(item.value) }}</span>
+                      <button class="icon-btn" @click="set.items.splice(ii, 1)"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                  </div>
+                  <div v-else class="empty">ยังไม่มีรายการ</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-                // --- Save / Load Data ---
-                saveDataToFile() {
-                    const data = { employees: this.employees, taskSets: this.taskSets, timestamp: Date.now() };
-                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = `เซฟงานของวันที่${new Date().toISOString().slice(0,10)}.json`;
-                    link.click();
-                    URL.revokeObjectURL(url);
-                    this.showToast('บันทึกไฟล์เรียบร้อย');
-                },
-                loadDataFromFile(event) {
-                    const file = event.target.files[0];
-                    if (!file) return;
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        try {
-                            const data = JSON.parse(e.target.result);
-                            if(data.employees && data.taskSets) {
-                                this.employees = data.employees;
-                                this.taskSets = data.taskSets;
-                                this.showToast('โหลดข้อมูลสำเร็จ');
-                            } else {
-                                this.showToast('รูปแบบไฟล์ไม่ถูกต้อง', 'error');
-                            }
-                        } catch (err) {
-                            this.showToast('เกิดข้อผิดพลาดในการอ่านไฟล์', 'error');
-                        }
-                    };
-                    reader.readAsText(file);
-                    event.target.value = '';
-                },
-                saveToStorage() {
-                    localStorage.setItem('jd_employees_v3', JSON.stringify(this.employees));
-                    localStorage.setItem('jd_taskSets_v3', JSON.stringify(this.taskSets));
-                },
-                loadFromStorage() {
-                    const emp = localStorage.getItem('jd_employees_v3');
-                    const tsk = localStorage.getItem('jd_taskSets_v3');
-                    if (emp) this.employees = JSON.parse(emp);
-                    if (tsk) this.taskSets = JSON.parse(tsk);
-                },
+        <!-- options + go -->
+        <div class="panel">
+          <div class="panel-b">
+            <div class="opts">
+              <label class="chk"><input type="checkbox" v-model="settings.groupZones">
+                <span>จัดร้านโซนเดียวกันไว้กับคนเดียวกันก่อน<small>ลดการเดินข้ามโซน — ยอมให้ยอดต่างกันเล็กน้อย</small></span></label>
+            </div>
+            <button class="btn go" @click="calculateDistribution"><i class="fa-solid fa-rocket"></i> คำนวณและกระจายงาน</button>
+          </div>
+        </div>
+      </div>
 
-                // --- Task Logic ---
-                addTaskSet() {
-                    this.taskSets.push({ id: Date.now(), setName: `ชื่อโซน ${this.taskSets.length + 1}`, mode: 'single', tempName: '', tempValue: '', bulkInput: '', items: [] });
-                },
-                removeTaskSet(index) { this.taskSets.splice(index, 1); },
-                resetTaskSets() {
-                    if(confirm('ยืนยันการล้างชุดงานทั้งหมด?')) {
-                        this.taskSets = [{ id: Date.now(), setName: "โซน 1", mode: 'single', tempName: '', tempValue: '', bulkInput: '', items: [] }];
-                        this.showToast('ล้างชุดงานเรียบร้อย');
-                    }
-                },
-                focusNextInput(event) {
-                    const inputs = event.target.parentElement.querySelectorAll('input');
-                    if(inputs[1]) inputs[1].focus();
-                },
-                addItemToSet(set) {
-                    if (!set.tempValue) return;
-                    const name = set.tempName.trim() || `งาน ${set.items.length + 1}`;
-                    const val = parseFloat(set.tempValue);
-                    if (isNaN(val)) return;
-                    set.items.push({ name: name, value: val });
-                    set.tempName = ''; set.tempValue = '';
-                },
-                removeItemFromSet(set, index) { set.items.splice(index, 1); },
-                sumSet(set) { return set.items.reduce((s, i) => s + i.value, 0); },
-                parseBulkInput(set) {
-                    if(!set.bulkInput) return;
-                    const lines = set.bulkInput.split('\n');
-                    let addedCount = 0;
-                    lines.forEach(line => {
-                        line = line.trim();
-                        if(!line) return;
-                        const match = line.match(/^(.*?)[:\s]+(\d+(\.\d+)?)$/);
-                        if (match) {
-                            let name = match[1].trim();
-                            let val = parseFloat(match[2]);
-                            if (!name) name = `งาน ${set.items.length + 1}`;
-                            set.items.push({ name, value: val });
-                            addedCount++;
-                        } else {
-                            const val = parseFloat(line);
-                            if (!isNaN(val)) {
-                                set.items.push({ name: `งาน ${set.items.length + 1}`, value: val });
-                                addedCount++;
-                            }
-                        }
-                    });
-                    set.bulkInput = ''; set.mode = 'single'; 
-                    this.showToast(`เพิ่ม ${addedCount} รายการเรียบร้อย`);
-                },
+      <!-- ================= RIGHT: results ================= -->
+      <div>
+        <template v-if="results">
+          <div class="panel">
+            <div class="panel-h">
+              <h3><span class="ico"><i class="fa-solid fa-chart-simple"></i></span>ผลการกระจายงาน</h3>
+              <div class="seg" style="margin:0" title="รูปแบบตอนพิมพ์">
+                <button :class="{ on: printMode === 'summary' }" @click="printMode = 'summary'">สรุปรวม</button>
+                <button :class="{ on: printMode === 'sheets' }" @click="printMode = 'sheets'">ใบงานรายคน</button>
+              </div>
+              <button class="btn sm" @click="printNow"><i class="fa-solid fa-print"></i> พิมพ์ / PDF</button>
+              <button class="btn sm ghost" @click="exportToExcel"><i class="fa-regular fa-file-excel"></i> Excel</button>
+              <button class="btn sm ghost" @click="exportToImage"><i class="fa-regular fa-image"></i> รูป</button>
+              <button class="btn sm ghost" @click="copyText"><i class="fa-regular fa-copy"></i> Copy</button>
+            </div>
+            <div class="panel-b">
+              <div v-if="isStale" class="stale">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span>รายชื่อ/รายการงานถูกแก้หลังคำนวณ — ผลด้านล่างอาจไม่ตรงกับข้อมูลล่าสุด</span>
+                <button class="btn sm dark" @click="calculateDistribution">คำนวณใหม่</button>
+              </div>
 
-                // --- Employee Logic ---
-                addEmployee() {
-                    this.employees.push({ name: `พนักงาน ${this.employees.length + 1}`, capacity: 100, id: Date.now() });
-                },
-                removeEmployee(index) {
-                    if (this.employees.length <= 1) return this.showToast('ต้องมีพนักงานอย่างน้อย 1 คน', 'error');
-                    this.employees.splice(index, 1);
-                },
-                resetEmployees() {
-                    if(confirm('ยืนยันการล้างรายชื่อทั้งหมด?')) {
-                        this.employees = [{ name: 'พนักงาน 1', capacity: 100, id: Date.now() }];
-                        this.showToast('ล้างรายชื่อเรียบร้อย');
-                    }
-                },
+              <div class="kpis">
+                <div class="kpi hl"><b>{{ fmt(grandTotalWeight) }}</b><small>รายการรวม</small></div>
+                <div class="kpi"><b>{{ grandTotalItems }}</b><small>ร้าน · {{ results.buckets.length }} คน</small></div>
+                <div class="kpi"><b>~{{ fmt(perCapacity) }}</b><small>รายการ / คน (ที่ 100%)</small></div>
+                <div class="kpi"><b :style="{ color: spreadPct > 10 ? 'var(--bad)' : 'var(--ok)' }">±{{ spreadPct }}%</b><small>ห่างจากเป้ามากสุด</small></div>
+              </div>
 
-                // --- Calculation ---
-                calculateDistribution() {
-                    const activeEmployees = this.employees.filter(e => e.name.trim() !== "");
-                    if (activeEmployees.length === 0) return this.showToast("เพิ่มพนักงานอย่างน้อย 1 คน", 'error');
+              <div class="legend">
+                <span v-for="z in zoneLegend" :key="z.index"><i :style="{ background: zoneColor(z.index) }"></i>{{ z.name }}</span>
+                <span style="margin-left:auto"><i class="fa-solid fa-hand-pointer"></i> ลากงานไปวางที่คนอื่น หรือเลือก "ย้าย" ได้</span>
+              </div>
 
-                    // ---------------------------------------------------------
-                    // [เพิ่มใหม่] ตรวจสอบว่ามีผลลัพธ์เดิมอยู่หรือไม่ เพื่อป้องกันการเผลอกดซ้ำ
-                    // ---------------------------------------------------------
-                    if (this.distributedResults.length > 0) {
-                        const confirmRecalculate = confirm("คุณมีผลการกระจายงานอยู่แล้ว หากคำนวณใหม่ สิ่งที่คุณจัดเรียงไว้ด้วยมือ (Drag & Drop) จะถูกรีเซ็ตทั้งหมด ยืนยันที่จะคำนวณใหม่หรือไม่?");
-                        if (!confirmRecalculate) return; // หากผู้ใช้กด Cancel (ยกเลิก) ให้หยุดการทำงานทันที
-                    }
-                    // ---------------------------------------------------------
+              <div class="buckets">
+                <div v-for="(b, bi) in results.buckets" :key="b.id" class="bucket"
+                     @dragover.prevent @dragenter.prevent="dragOver = bi"
+                     @dragleave="onDragLeave($event, bi)" @drop.prevent="onDrop(bi)"
+                     :class="{ 'drag-over': dragOver === bi }">
+                  <div class="bucket-h">
+                    <div class="row">
+                      <span class="badge">{{ bi + 1 }}</span>
+                      <div class="who">
+                        <b>{{ b.employeeName }}</b>
+                        <small>Cap {{ b.capacity }}% · เป้า {{ fmt(target(b)) }}</small>
+                      </div>
+                      <div class="tot"><b>{{ fmt(bucketTotal(b)) }}</b><small>รายการ</small></div>
+                    </div>
+                    <div class="meter" :class="{ over: loadPct(b) > 110 }"><i :style="{ width: Math.min(loadPct(b) / 1.3, 100) + '%' }"></i></div>
+                  </div>
+                  <div class="tasks">
+                    <div v-if="!b.tasks.length" class="free"><span><i class="fa-solid fa-mug-hot"></i><br>ว่าง — ลากงานมาวางได้</span></div>
+                    <div v-for="(t, ti) in b.tasks" :key="t.id" class="task" draggable="true"
+                         :class="{ dragging: dragging && dragging.id === t.id }"
+                         @dragstart="onDragStart($event, bi, t)" @dragend="dragging = null; dragOver = null">
+                      <span class="dot" :style="{ background: zoneColor(t.zoneIndex) }" :title="t.zoneName"></span>
+                      <input class="nm" v-model="t.name">
+                      <input class="v" type="number" min="0" v-model.number="t.value" @blur="t.value = toNum(t.value)">
+                      <select @change="moveTask(bi, t.id, +$event.target.value); $event.target.value = ''" title="ย้ายไปให้คนอื่น">
+                        <option value="">ย้าย</option>
+                        <template v-for="(o, oi) in results.buckets" :key="o.id">
+                          <option v-if="oi !== bi" :value="oi">{{ oi + 1 }}. {{ o.employeeName }}</option>
+                        </template>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="bucket-f">
+                    <span><i class="fa-solid fa-store"></i> {{ b.tasks.length }} ร้าน</span>
+                    <span class="pill" :class="loadClass(b)">Load {{ loadPct(b) }}%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
 
-                    let buckets = activeEmployees.map(e => ({
-                        employeeName: e.name,
-                        capacity: e.capacity || 100, 
-                        tasks: [],
-                        totalWeight: 0
-                    }));
+        <div v-else class="placeholder">
+          <div class="big"><i class="fa-solid fa-scale-balanced"></i></div>
+          <h3>พร้อมคำนวณงาน</h3>
+          <p>เพิ่มพนักงานและรายการงานทางซ้าย<br>แล้วกด <b>คำนวณและกระจายงาน</b></p>
+        </div>
+      </div>
+    </div>
+  </main>
 
-                    let allTasks = [];
-                    let hasWork = false;
-                    this.taskSets.forEach((set, setIndex) => {
-                        set.items.forEach(item => {
-                            allTasks.push({ name: item.name, value: item.value, originalSetIndex: setIndex, originalSetName: set.setName });
-                            hasWork = true;
-                        });
-                    });
+  <!-- ================= PRINT SHEET ================= -->
+  <div id="sheet" v-if="results" :class="{ capture: capturing }">
+    <!-- Summary: ทุกคนในหน้าเดียว -->
+    <template v-if="printMode === 'summary' || capturing">
+      <div class="sh-head">
+        <div class="logo"><img :src="logo" alt=""></div>
+        <h2><span>สรุปผลการกระจายงาน</span></h2>
+        <div class="meta">คำนวณเมื่อ {{ fmtDate(results.calculatedAt) }}<br>พิมพ์เมื่อ {{ fmtDate(Date.now()) }}</div>
+      </div>
+      <div class="sh-kpis">
+        <div class="hl"><b>{{ fmt(grandTotalWeight) }}</b>รายการรวม</div>
+        <div><b>{{ grandTotalItems }}</b>ร้าน</div>
+        <div><b>{{ results.buckets.length }}</b>คน</div>
+        <div><b>~{{ fmt(perCapacity) }}</b>รายการ / คน (100%)</div>
+      </div>
+      <div class="sh-grid">
+        <div v-for="(b, bi) in results.buckets" :key="b.id" class="sh-card">
+          <div class="sh-card-h">
+            <span class="no">{{ bi + 1 }}</span><b>{{ b.employeeName }}</b>
+            <span class="t">{{ b.tasks.length }} ร้าน · <b>{{ fmt(bucketTotal(b)) }}</b></span>
+          </div>
+          <table class="sh">
+            <thead><tr><th>#</th><th>ร้าน</th><th>โซน</th><th class="num">จำนวน</th></tr></thead>
+            <tbody>
+              <tr v-for="(t, ti) in b.tasks" :key="t.id">
+                <td style="width:24px;color:#888">{{ ti + 1 }}</td><td>{{ t.name }}</td>
+                <td class="zn"><span class="zdot" :style="{ background: zoneColor(t.zoneIndex) }"></span>{{ t.zoneName }}</td>
+                <td class="num">{{ fmt(t.value) }}</td>
+              </tr>
+              <tr v-if="!b.tasks.length"><td colspan="4" style="text-align:center;color:#999">— ไม่มีงาน —</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="sh-foot">ST Team · ระบบกระจายงาน</div>
+    </template>
 
-                    if (!hasWork) return this.showToast("ไม่พบรายการงาน", 'error');
-                    allTasks.sort((a, b) => b.value - a.value);
+    <!-- Worksheets: 1 คน / หน้า -->
+    <template v-else>
+      <div v-for="(b, bi) in results.buckets" :key="b.id" class="ws">
+        <div class="sh-head">
+          <div class="logo"><img :src="logo" alt=""></div>
+          <h2>ใบงานจัดสินค้า</h2>
+          <div class="meta">วันที่ {{ fmtDate(results.calculatedAt, true) }}<br>ใบที่ {{ bi + 1 }} / {{ results.buckets.length }}</div>
+        </div>
+        <div class="ws-name">
+          <div class="big"><span>{{ b.employeeName }}</span></div>
+          <div class="info">
+            <div><b>{{ b.tasks.length }}</b>ร้าน</div>
+            <div><b>{{ fmt(bucketTotal(b)) }}</b>รายการ</div>
+          </div>
+        </div>
+        <table class="ws-t">
+          <thead><tr><th style="width:36px">#</th><th>ชื่อร้าน</th><th class="num">จำนวน</th><th style="width:46px;text-align:center">เสร็จ</th></tr></thead>
+          <tbody>
+            <template v-for="g in groupByZone(b.tasks)" :key="g.zoneIndex">
+              <tr class="zrow"><td colspan="4"><span class="zdot" :style="{ background: zoneColor(g.zoneIndex) }"></span>{{ g.zoneName }} · {{ g.tasks.length }} ร้าน · {{ fmt(g.total) }}</td></tr>
+              <tr v-for="t in g.tasks" :key="t.id">
+                <td>{{ t.no }}</td><td>{{ t.name }}</td><td class="num">{{ fmt(t.value) }}</td><td class="box"><i></i></td>
+              </tr>
+            </template>
+            <tr v-if="!b.tasks.length"><td colspan="4" style="text-align:center;color:#999">— ไม่มีงาน —</td></tr>
+          </tbody>
+          <tfoot><tr><td></td><td>รวม</td><td class="num">{{ fmt(bucketTotal(b)) }}</td><td></td></tr></tfoot>
+        </table>
+        <div class="sign">
+          <div><i></i>ผู้รับงาน</div>
+          <div><i></i>เวลาเสร็จ</div>
+          <div><i></i>ผู้ตรวจ</div>
+        </div>
+      </div>
+    </template>
+  </div>
+</div>
 
-                    allTasks.forEach(task => {
-                        let bestBucketIndex = 0;
-                        let minLoadRatio = buckets[0].totalWeight / buckets[0].capacity;
-                        for (let i = 1; i < buckets.length; i++) {
-                            const ratio = buckets[i].totalWeight / buckets[i].capacity;
-                            if (ratio < minLoadRatio) {
-                                minLoadRatio = ratio;
-                                bestBucketIndex = i;
-                            }
-                        }
-                        buckets[bestBucketIndex].tasks.push(task);
-                        buckets[bestBucketIndex].totalWeight += task.value;
-                    });
+<script>
+const { createApp, nextTick } = Vue;
 
-                    buckets.forEach(bucket => {
-                        bucket.totalWeight = parseFloat(bucket.totalWeight.toFixed(2));
-                        bucket.tasks.sort((a, b) => {
-                            if (a.originalSetIndex !== b.originalSetIndex) return a.originalSetIndex - b.originalSetIndex;
-                            return b.value - a.value;
-                        });
-                    });
+const STORE = { emp: 'jd_employees_v3', tasks: 'jd_taskSets_v3', results: 'jd_results_v4', settings: 'jd_settings_v4' };
+const ZONE_COLORS = ['#E5483B', '#EBC50E', '#1D6FD1', '#2E9E44', '#8E44C9', '#E0458B', '#14A3B8', '#F08A1C', '#6B6A63', '#111111'];
 
-                    this.distributedResults = buckets;
-                    this.showToast(`คำนวณเสร็จสิ้น! แบ่งงานให้ ${activeEmployees.length} คน`);
-                    setTimeout(() => {
-                        const el = document.getElementById('export-area');
-                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }, 100);
-                },
+function store(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} }
+function load(key) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
+let uid = Date.now();
+const nextId = () => ++uid;
 
-                // --- Style Helpers ---
-                showToast(msg, type = 'success') {
-                    this.toast = { show: true, message: msg, type };
-                    setTimeout(() => this.toast.show = false, 3000);
-                },
-                getStyle(index) { return this.colors[index % this.colors.length]; },
-                getDotColor(index) { return this.getStyle(index).dot; },
-                getCapacityColor(cap) {
-                    if (cap > 100) return 'text-green-600 font-bold border-green-200 bg-green-50 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800';
-                    if (cap < 100) return 'text-orange-500 border-orange-200 bg-orange-50 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800';
-                    return 'text-gray-600 border-gray-200 dark:text-gray-400 dark:border-slate-600';
-                },
-                getLoadPercentage(currentWeight, capacity) {
-                    if (this.grandTotalWeight === 0 || this.totalCapacityPoints === 0) return 0;
-                    const globalSharePerPoint = this.grandTotalWeight / this.totalCapacityPoints;
-                    const expectedLoad = globalSharePerPoint * capacity;
-                    if (expectedLoad === 0) return 0;
-                    return Math.round((currentWeight / expectedLoad) * 100);
-                },
-                getLoadColorClass(percent) {
-                    if (percent > 115) return 'text-red-600 bg-red-50 border-red-100 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800';
-                    if (percent < 85) return 'text-blue-500 bg-blue-50 border-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800';
-                    return 'text-green-600 bg-green-50 border-green-100 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800';
-                },
+/**
+ * กระจายงานให้ยอดของแต่ละคนใกล้ "เป้า" (สัดส่วนตาม capacity) มากที่สุด
+ * 1) Greedy (LPT): เรียงงานใหญ่→เล็ก ส่งให้คนที่ "หลังรับงานแล้ว" สัดส่วน load/capacity ต่ำสุด
+ * 2) Local search: ลองย้าย/สลับงานระหว่างคน ถ้าทำให้ผลรวมกำลังสองของส่วนต่างจากเป้าลดลง
+ * ถ้าเปิด groupZones จะคิดค่าปรับเมื่อโซนเดียวกันถูกแยกไปหลายคน
+ */
+function distribute(tasks, people, groupZones) {
+  const W = tasks.reduce((s, t) => s + t.value, 0);
+  const C = people.reduce((s, p) => s + p.capacity, 0);
+  const n = people.length;
+  const target = people.map(p => W * p.capacity / C);
+  const load = new Array(n).fill(0);
+  const bins = people.map(() => []);
+  const zc = people.map(() => new Map()); // zoneIndex -> count
+  const addZ = (i, z, d) => { const m = zc[i]; const c = (m.get(z) || 0) + d; c ? m.set(z, c) : m.delete(z); };
 
-                // --- Exports (UPDATED) ---
-                copyText() {
-                    let text = `สรุปการแบ่งงาน (${new Date().toLocaleDateString()})\n--------------------------------\n`;
-                    this.distributedResults.forEach(res => {
-                        text += `👤 ${res.employeeName} (Cap: ${res.capacity}%)\n   น้ำหนักรวม: ${res.totalWeight}\n   งานที่ได้รับ:\n`;
-                        res.tasks.forEach(t => text += `   - ${t.name}: ${t.value}\n`);
-                        text += `\n`;
-                    });
-                    navigator.clipboard.writeText(text).then(() => this.showToast("คัดลอกลง Clipboard แล้ว"));
-                },
-                exportToExcel() {
-                    let data = [];
-                    this.distributedResults.forEach(res => {
-                        res.tasks.forEach((t, i) => {
-                            data.push({
-                                "ชื่อพนักงาน": res.employeeName,
-                                "Capacity(%)": res.capacity,
-                                "ลำดับงาน": i + 1,
-                                "ชื่อโซน": t.originalSetName,
-                                "ชื่อร้าน": t.name,
-                                "จำนวนรายการ": t.value
-                            });
-                        });
-                    });
-                    const ws = XLSX.utils.json_to_sheet(data);
-                    const wb = XLSX.utils.book_new();
-                    XLSX.utils.book_append_sheet(wb, ws, "Work_Distribution");
-                    XLSX.writeFile(wb, `ไฟล์งานของวันที่_${new Date().toISOString().slice(0,10)}.xlsx`);
-                    this.showToast("ดาวน์โหลด Excel เรียบร้อย");
-                },
-                exportToImage() {
-                    const element = document.getElementById('export-area');
-                    this.showToast("กำลังสร้างรูปภาพ...");
-                    
-                    // ตั้งค่า options สำหรับการสร้างรูปภาพ
-                    const options = {
-                        scale: 2, // เพิ่มความละเอียดของภาพ
-                        useCORS: true,
-                        backgroundColor: '#ffffff', // บังคับพื้นหลังสีขาว
-                        onclone: (clonedDoc) => {
-                            const clonedElement = clonedDoc.getElementById('export-area');
-                            // บังคับเปลี่ยน class เป็น Light Mode ชั่วคราวเพื่อให้ Text ชัดเจนที่สุดในรูป
-                            clonedElement.classList.remove('dark');
-                            clonedElement.style.color = '#1e293b'; 
-                        }
-                    };
+  // ---- Phase 1: greedy ----
+  const tol = 0.05 * (W / C); // ยอมต่างได้ ~5% ของค่าเฉลี่ยต่อ capacity เมื่อจัดกลุ่มโซน
+  [...tasks].sort((a, b) => b.value - a.value).forEach(t => {
+    const score = people.map((p, i) => (load[i] + t.value) / p.capacity);
+    let best = 0;
+    for (let i = 1; i < n; i++) if (score[i] < score[best] - 1e-9 || (Math.abs(score[i] - score[best]) < 1e-9 && load[i] < load[best])) best = i;
+    if (groupZones) {
+      let pick = -1;
+      for (let i = 0; i < n; i++) {
+        if (zc[i].has(t.zoneIndex) && score[i] <= score[best] + tol && (pick < 0 || score[i] < score[pick])) pick = i;
+      }
+      if (pick >= 0) best = pick;
+    }
+    bins[best].push(t); load[best] += t.value; addZ(best, t.zoneIndex, 1);
+  });
 
-                    // ใช้ html2pdf ที่มีอยู่แล้วให้ประมวลผลเป็นรูปภาพ
-                    html2pdf().set({ html2canvas: options }).from(element).outputImg('img').then((img) => {
-                        // img ที่ได้กลับมาคือ HTMLImageElement ที่มี base64 data อยู่ใน src
-                        const link = document.createElement('a');
-                        link.download = `รูปงานของวันที่${new Date().toISOString().slice(0,10)}.png`; // ตั้งชือไฟล์รูป
-                        link.href = img.src; // นำข้อมูลรูปภาพใส่ลงในลิงก์
-                        link.click(); // จำลองการคลิกเพื่อดาวน์โหลด
-                        this.showToast("บันทึกรูปภาพเรียบร้อย");
-                    }).catch(err => {
-                        console.error("เกิดข้อผิดพลาดในการสร้างรูปภาพ:", err);
-                        this.showToast("เกิดข้อผิดพลาดในการสร้างรูปภาพ", "error");
-                    });
-                },
-                exportToPDF() {
-                    const element = document.getElementById('export-area');
-                    this.showToast("กำลังสร้าง PDF...");
-                    
-                    const opt = {
-                        margin:       [10, 10, 10, 10], // top, left, bottom, right (mm)
-                        filename:     `PDFงานของวันที่${new Date().toISOString().slice(0,10)}.pdf`,
-                        image:        { type: 'jpeg', quality: 0.98 },
-                        html2canvas:  { 
-                            scale: 2, 
-                            useCORS: true, 
-                            backgroundColor: '#ffffff',
-                            onclone: (clonedDoc) => {
-                                const clonedElement = clonedDoc.getElementById('export-area');
-                                clonedElement.classList.remove('dark'); // บังคับ Light Mode ใน PDF
-                                clonedElement.style.color = '#000000';
-                            }
-                        },
-                        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                        // สำคัญ: ตั้งค่า pagebreak เพื่อไม่ให้ตัดกลางกล่อง
-                        pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
-                    };
+  // ---- Phase 2: local search (move / swap) ----
+  const avg = W / n;
+  const lambda = groupZones ? Math.pow(0.08 * avg, 2) : 0; // ค่าปรับต่อการแยกโซน 1 ครั้ง
+  const sq = x => x * x;
+  const EPS = 1e-6;
+  // จำนวนโซนที่เปลี่ยนไป (รวม 2 คน) ถ้าเอา out ออกจาก i แล้วใส่ inn เข้าแทน (inn = null คือย้ายอย่างเดียว)
+  const zoneDelta = (i, out, inn) => {
+    const before = zc[i].size;
+    addZ(i, out, -1); if (inn !== null) addZ(i, inn, 1);
+    const after = zc[i].size;
+    if (inn !== null) addZ(i, inn, -1); addZ(i, out, 1);
+    return after - before;
+  };
+  const zoneGain = (j, z) => (zc[j].has(z) ? 0 : 1);
 
-                    html2pdf().set(opt).from(element).save().then(() => {
-                        this.showToast("บันทึก PDF เรียบร้อย");
-                    }).catch(err => {
-                        console.error(err);
-                        this.showToast("เกิดข้อผิดพลาดในการสร้าง PDF", "error");
-                    });
-                }
+  // ทำซ้ำจนไม่มีการย้าย/สลับที่ดีขึ้น (จำกัดเวลา ~1.5 วินาที กันค้าง)
+  const deadline = Date.now() + 1500;
+  let improved = true;
+  while (improved && Date.now() < deadline) {
+    improved = false;
+    for (let i = 0; i < n && !improved; i++) {
+      for (let j = 0; j < n && !improved; j++) {
+        if (i === j) continue;
+        const base = sq(load[i] - target[i]) + sq(load[j] - target[j]);
+        // move: i -> j
+        for (let a = 0; a < bins[i].length; a++) {
+          const t = bins[i][a];
+          let d = sq(load[i] - t.value - target[i]) + sq(load[j] + t.value - target[j]) - base;
+          if (lambda) d += lambda * (zoneDelta(i, t.zoneIndex, null) + zoneGain(j, t.zoneIndex));
+          if (d < -EPS) {
+            bins[i].splice(a, 1); bins[j].push(t);
+            load[i] -= t.value; load[j] += t.value;
+            addZ(i, t.zoneIndex, -1); addZ(j, t.zoneIndex, 1);
+            improved = true; break;
+          }
+        }
+        if (improved) break;
+        // swap: i <-> j
+        for (let a = 0; a < bins[i].length && !improved; a++) {
+          for (let b = 0; b < bins[j].length; b++) {
+            const ta = bins[i][a], tb = bins[j][b];
+            const diff = ta.value - tb.value;
+            if (Math.abs(diff) < EPS) continue;
+            let d = sq(load[i] - diff - target[i]) + sq(load[j] + diff - target[j]) - base;
+            if (lambda && ta.zoneIndex !== tb.zoneIndex) d += lambda * (zoneDelta(i, ta.zoneIndex, tb.zoneIndex) + zoneDelta(j, tb.zoneIndex, ta.zoneIndex));
+            if (d < -EPS) {
+              bins[i][a] = tb; bins[j][b] = ta;
+              load[i] -= diff; load[j] += diff;
+              addZ(i, ta.zoneIndex, -1); addZ(i, tb.zoneIndex, 1);
+              addZ(j, tb.zoneIndex, -1); addZ(j, ta.zoneIndex, 1);
+              improved = true; break;
             }
-        }).mount('#app');
-    </script>
+          }
+        }
+      }
+    }
+  }
+  return bins;
+}
+
+createApp({
+  data() {
+    return {
+      logo: 'data:image/png;base64,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',
+      employees: [
+        { id: 1, name: 'พนักงาน 1', capacity: 100 },
+        { id: 2, name: 'พนักงาน 2', capacity: 100 },
+        { id: 3, name: 'พนักงาน 3', capacity: 100 }
+      ],
+      taskSets: [
+        { id: 1, setName: 'โซน 1', mode: 'single', tempName: '', tempValue: '', bulkInput: '',
+          items: [{ name: 'Job A', value: 50 }, { name: 'Job B', value: 30 }, { name: 'Job C', value: 20 }] }
+      ],
+      settings: { groupZones: false },
+      results: null,           // { calculatedAt, signature, buckets: [{ id, employeeName, capacity, tasks: [] }] }
+      printMode: 'summary',
+      capturing: false,
+      dragging: null,
+      dragOver: null,
+      toast: { show: false, message: '', type: 'success' },
+      toastTimer: null
+    };
+  },
+  created() {
+    const emp = load(STORE.emp), tsk = load(STORE.tasks), res = load(STORE.results), st = load(STORE.settings);
+    if (Array.isArray(emp) && emp.length) this.employees = emp.map(e => this.cleanEmployee(e));
+    if (Array.isArray(tsk) && tsk.length) this.taskSets = tsk.map(s => this.cleanSet(s));
+    if (res && Array.isArray(res.buckets)) this.results = res;
+    if (st) Object.assign(this.settings, st);
+  },
+  watch: {
+    employees: { handler(v) { store(STORE.emp, v); }, deep: true },
+    taskSets: { handler(v) { store(STORE.tasks, v); }, deep: true },
+    results: { handler(v) { v ? store(STORE.results, v) : localStorage.removeItem(STORE.results); }, deep: true },
+    settings: { handler(v) { store(STORE.settings, v); }, deep: true }
+  },
+  computed: {
+    activeEmployees() { return this.employees.filter(e => e.name && e.name.trim()); },
+    totalTasksCount() { return this.taskSets.reduce((s, set) => s + set.items.length, 0); },
+    grandTotalWeight() { return this.results ? this.results.buckets.reduce((s, b) => s + this.bucketTotal(b), 0) : 0; },
+    grandTotalItems() { return this.results ? this.results.buckets.reduce((s, b) => s + b.tasks.length, 0) : 0; },
+    totalCapacity() { return this.results ? this.results.buckets.reduce((s, b) => s + b.capacity, 0) : 0; },
+    perCapacity() { return this.totalCapacity ? this.grandTotalWeight / this.totalCapacity * 100 : 0; },
+    spreadPct() {
+      if (!this.results || !this.grandTotalWeight) return 0;
+      return Math.max(...this.results.buckets.map(b => Math.abs(this.loadPct(b) - 100)));
+    },
+    zoneLegend() {
+      if (!this.results) return [];
+      const m = new Map();
+      this.results.buckets.forEach(b => b.tasks.forEach(t => m.set(t.zoneIndex, t.zoneName)));
+      return [...m.entries()].sort((a, b) => a[0] - b[0]).map(([index, name]) => ({ index, name }));
+    },
+    currentSignature() { return this.signature(); },
+    isStale() { return !!this.results && this.results.signature !== this.currentSignature; }
+  },
+  methods: {
+    // ---------- helpers ----------
+    toNum(v) { const n = parseFloat(String(v).replace(/,/g, '')); return isFinite(n) && n > 0 ? n : 0; },
+    clampCap(v) { const n = Math.round(Number(v)); return isFinite(n) && n > 0 ? Math.min(300, Math.max(10, n)) : 100; },
+    fmt(n) { return (Math.round((Number(n) || 0) * 100) / 100).toLocaleString('th-TH'); },
+    fmtDate(ts, dateOnly) {
+      const d = new Date(ts);
+      return dateOnly ? d.toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+                      : d.toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
+    },
+    zoneColor(i) { return ZONE_COLORS[i % ZONE_COLORS.length]; },
+    sumSet(set) { return set.items.reduce((s, i) => s + (Number(i.value) || 0), 0); },
+    bucketTotal(b) { return b.tasks.reduce((s, t) => s + (Number(t.value) || 0), 0); },
+    target(b) { return this.totalCapacity ? this.grandTotalWeight * b.capacity / this.totalCapacity : 0; },
+    loadPct(b) { const t = this.target(b); return t ? Math.round(this.bucketTotal(b) / t * 100) : 0; },
+    loadClass(b) { const p = this.loadPct(b); return p > 110 ? 'p-bad' : p < 90 ? 'p-ac' : 'p-ok'; },
+    signature() {
+      return JSON.stringify([
+        this.activeEmployees.map(e => [e.name.trim(), this.clampCap(e.capacity)]),
+        this.taskSets.map(s => [s.setName, s.items.map(i => [i.name, i.value])])
+      ]);
+    },
+    cleanEmployee(e) { return { id: e.id || nextId(), name: String(e.name ?? ''), capacity: this.clampCap(e.capacity) }; },
+    cleanSet(s) {
+      return {
+        id: s.id || nextId(), setName: String(s.setName ?? 'โซน'), mode: s.mode === 'bulk' ? 'bulk' : 'single',
+        tempName: '', tempValue: '', bulkInput: '',
+        items: (Array.isArray(s.items) ? s.items : []).map(i => ({ name: String(i.name ?? ''), value: this.toNum(i.value) })).filter(i => i.value > 0)
+      };
+    },
+    groupByZone(tasks) {
+      const groups = [];
+      tasks.forEach((t, i) => {
+        let g = groups.find(x => x.zoneIndex === t.zoneIndex);
+        if (!g) groups.push(g = { zoneIndex: t.zoneIndex, zoneName: t.zoneName, tasks: [], total: 0 });
+        g.tasks.push({ ...t, no: 0 }); g.total += Number(t.value) || 0;
+      });
+      let no = 0;
+      groups.sort((a, b) => a.zoneIndex - b.zoneIndex).forEach(g => g.tasks.forEach(t => t.no = ++no));
+      return groups;
+    },
+    showToast(message, type = 'success') {
+      clearTimeout(this.toastTimer);
+      this.toast = { show: true, message, type };
+      this.toastTimer = setTimeout(() => (this.toast.show = false), 3000);
+    },
+
+    // ---------- employees ----------
+    addEmployee() { this.employees.push({ id: nextId(), name: `พนักงาน ${this.employees.length + 1}`, capacity: 100 }); },
+    removeEmployee(i) {
+      if (this.employees.length <= 1) return this.showToast('ต้องมีพนักงานอย่างน้อย 1 คน', 'error');
+      this.employees.splice(i, 1);
+    },
+    resetEmployees() {
+      if (!confirm('ยืนยันการล้างรายชื่อทั้งหมด?')) return;
+      this.employees = [{ id: nextId(), name: 'พนักงาน 1', capacity: 100 }];
+    },
+
+    // ---------- tasks ----------
+    addTaskSet() { this.taskSets.push({ id: nextId(), setName: `โซน ${this.taskSets.length + 1}`, mode: 'single', tempName: '', tempValue: '', bulkInput: '', items: [] }); },
+    removeTaskSet(i) {
+      const s = this.taskSets[i];
+      if (s.items.length && !confirm(`ลบ "${s.setName}" และ ${s.items.length} รายการในโซนนี้?`)) return;
+      this.taskSets.splice(i, 1);
+    },
+    resetTaskSets() {
+      if (!confirm('ยืนยันการล้างชุดงานทั้งหมด?')) return;
+      this.taskSets = [{ id: nextId(), setName: 'โซน 1', mode: 'single', tempName: '', tempValue: '', bulkInput: '', items: [] }];
+    },
+    addItemToSet(set, evt) {
+      const val = this.toNum(set.tempValue);
+      if (!val) return this.showToast('กรุณาใส่จำนวนมากกว่า 0', 'error');
+      set.items.push({ name: set.tempName.trim() || `งาน ${set.items.length + 1}`, value: val });
+      set.tempName = ''; set.tempValue = '';
+      if (evt) evt.target.previousElementSibling.focus();
+    },
+    parseBulkInput(set) {
+      if (!set.bulkInput.trim()) return;
+      let added = 0; const bad = [];
+      set.bulkInput.split(/\r?\n/).forEach(raw => {
+        const line = raw.trim();
+        if (!line) return;
+        // แยกด้วย Tab (Excel) ก่อน ถ้าไม่มีให้ใช้ตัวเลขท้ายบรรทัด
+        let name, num;
+        const cols = line.split('\t').map(c => c.trim()).filter(Boolean);
+        if (cols.length >= 2) {
+          const ni = cols.length - 1 - [...cols].reverse().findIndex(c => /^-?[\d,]+(\.\d+)?$/.test(c));
+          if (ni < cols.length && ni >= 0) { num = cols[ni]; name = cols.filter((_, k) => k !== ni).join(' '); }
+        }
+        if (num === undefined) {
+          const m = line.match(/^(.*?)[\s:,;|]+(-?[\d,]*\d(?:\.\d+)?)$/) || line.match(/^()(-?[\d,]*\d(?:\.\d+)?)$/);
+          if (m) { name = m[1]; num = m[2]; }
+        }
+        const val = num === undefined ? 0 : this.toNum(num);
+        if (!val) { bad.push(line); return; }
+        set.items.push({ name: (name || '').trim() || `งาน ${set.items.length + 1}`, value: val });
+        added++;
+      });
+      set.bulkInput = bad.join('\n');
+      if (!bad.length) set.mode = 'single';
+      if (bad.length) this.showToast(`เพิ่ม ${added} รายการ · อ่านไม่ได้ ${bad.length} บรรทัด (ค้างไว้ในช่องให้แก้)`, added ? 'success' : 'error');
+      else this.showToast(`เพิ่ม ${added} รายการเรียบร้อย`);
+    },
+
+    // ---------- calculation ----------
+    calculateDistribution() {
+      const people = this.activeEmployees.map(e => ({ name: e.name.trim(), capacity: this.clampCap(e.capacity) }));
+      if (!people.length) return this.showToast('เพิ่มพนักงานอย่างน้อย 1 คน', 'error');
+      const tasks = [];
+      this.taskSets.forEach((set, zi) => set.items.forEach(item => {
+        const v = this.toNum(item.value);
+        if (v > 0) tasks.push({ id: nextId(), name: item.name, value: v, zoneIndex: zi, zoneName: set.setName || `โซน ${zi + 1}` });
+      }));
+      if (!tasks.length) return this.showToast('ไม่พบรายการงาน', 'error');
+      if (this.results && !confirm('มีผลการกระจายงานอยู่แล้ว ถ้าคำนวณใหม่ การย้าย/แก้ไขด้วยมือจะหายทั้งหมด ยืนยัน?')) return;
+
+      const bins = distribute(tasks, people, this.settings.groupZones);
+      this.results = {
+        calculatedAt: Date.now(),
+        signature: this.signature(),
+        buckets: people.map((p, i) => ({
+          id: nextId(), employeeName: p.name, capacity: p.capacity,
+          tasks: bins[i].sort((a, b) => a.zoneIndex - b.zoneIndex || b.value - a.value)
+        }))
+      };
+      this.showToast(`คำนวณเสร็จ! แบ่งงาน ${tasks.length} ร้าน ให้ ${people.length} คน`);
+    },
+
+    // ---------- move tasks ----------
+    moveTask(fromBi, taskId, toBi) {
+      if (isNaN(toBi) || fromBi === toBi) return;
+      const from = this.results.buckets[fromBi].tasks;
+      const idx = from.findIndex(t => t.id === taskId);
+      if (idx < 0) return;
+      const [t] = from.splice(idx, 1);
+      const to = this.results.buckets[toBi].tasks;
+      to.push(t);
+      to.sort((a, b) => a.zoneIndex - b.zoneIndex || b.value - a.value);
+    },
+    onDragStart(evt, bi, t) {
+      this.dragging = { from: bi, id: t.id };
+      evt.dataTransfer.effectAllowed = 'move';
+      evt.dataTransfer.setData('text/plain', String(t.id));
+    },
+    onDragLeave(evt, bi) {
+      if (!evt.currentTarget.contains(evt.relatedTarget) && this.dragOver === bi) this.dragOver = null;
+    },
+    onDrop(bi) {
+      if (this.dragging) this.moveTask(this.dragging.from, this.dragging.id, bi);
+      this.dragging = null; this.dragOver = null;
+    },
+
+    // ---------- save / load ----------
+    saveDataToFile() {
+      const data = { version: 4, employees: this.employees, taskSets: this.taskSets, settings: this.settings, results: this.results, timestamp: Date.now() };
+      this.download(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }), `งานกระจาย_${this.stamp()}.json`);
+      this.showToast('บันทึกไฟล์เรียบร้อย');
+    },
+    loadDataFromFile(event) {
+      const file = event.target.files[0];
+      event.target.value = '';
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!Array.isArray(data.employees) || !Array.isArray(data.taskSets)) throw new Error('format');
+          this.employees = data.employees.map(x => this.cleanEmployee(x));
+          this.taskSets = data.taskSets.map(x => this.cleanSet(x));
+          if (data.settings) Object.assign(this.settings, data.settings);
+          this.results = data.results && Array.isArray(data.results.buckets) ? data.results : null;
+          this.showToast('โหลดข้อมูลสำเร็จ');
+        } catch (err) {
+          this.showToast('ไฟล์ไม่ถูกต้อง หรืออ่านไม่ได้', 'error');
+        }
+      };
+      reader.readAsText(file);
+    },
+
+    // ---------- exports ----------
+    stamp() { const d = new Date(); return d.toISOString().slice(0, 10); },
+    download(blobOrUrl, name) {
+      const a = document.createElement('a');
+      const url = typeof blobOrUrl === 'string' ? blobOrUrl : URL.createObjectURL(blobOrUrl);
+      a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+      if (typeof blobOrUrl !== 'string') setTimeout(() => URL.revokeObjectURL(url), 1000);
+    },
+    async printNow() {
+      await nextTick();
+      if (document.fonts && document.fonts.ready) await document.fonts.ready;
+      window.print();
+    },
+    copyText() {
+      const r = this.results;
+      let text = `📋 สรุปการแบ่งงาน (${this.fmtDate(r.calculatedAt, true)})\nรวม ${this.fmt(this.grandTotalWeight)} รายการ · ${this.grandTotalItems} ร้าน\n━━━━━━━━━━━━━━━━\n`;
+      r.buckets.forEach((b, i) => {
+        text += `\n${i + 1}. 👤 ${b.employeeName} — ${b.tasks.length} ร้าน / ${this.fmt(this.bucketTotal(b))} รายการ\n`;
+        this.groupByZone(b.tasks).forEach(g => {
+          text += `   [${g.zoneName}]\n`;
+          g.tasks.forEach(t => (text += `   • ${t.name}: ${this.fmt(t.value)}\n`));
+        });
+      });
+      const done = () => this.showToast('คัดลอกแล้ว วางใน LINE ได้เลย');
+      if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(done, () => this.fallbackCopy(text, done));
+      else this.fallbackCopy(text, done);
+    },
+    fallbackCopy(text, done) {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) { this.showToast('คัดลอกไม่สำเร็จ', 'error'); }
+      ta.remove();
+    },
+    exportToExcel() {
+      const r = this.results;
+      const summary = r.buckets.map((b, i) => ({
+        'ลำดับ': i + 1, 'ชื่อพนักงาน': b.employeeName, 'Capacity(%)': b.capacity,
+        'จำนวนร้าน': b.tasks.length, 'รวมรายการ': this.bucketTotal(b),
+        'เป้า': Math.round(this.target(b) * 100) / 100, 'Load(%)': this.loadPct(b)
+      }));
+      summary.push({ 'ลำดับ': '', 'ชื่อพนักงาน': 'รวม', 'Capacity(%)': this.totalCapacity, 'จำนวนร้าน': this.grandTotalItems, 'รวมรายการ': this.grandTotalWeight, 'เป้า': '', 'Load(%)': '' });
+      const detail = [];
+      r.buckets.forEach(b => b.tasks.forEach((t, i) => detail.push({
+        'ชื่อพนักงาน': b.employeeName, 'ลำดับงาน': i + 1, 'ชื่อโซน': t.zoneName, 'ชื่อร้าน': t.name, 'จำนวนรายการ': t.value
+      })));
+      const wb = XLSX.utils.book_new();
+      const ws1 = XLSX.utils.json_to_sheet(summary);
+      ws1['!cols'] = [{ wch: 6 }, { wch: 22 }, { wch: 12 }, { wch: 11 }, { wch: 11 }, { wch: 10 }, { wch: 9 }];
+      const ws2 = XLSX.utils.json_to_sheet(detail);
+      ws2['!cols'] = [{ wch: 22 }, { wch: 9 }, { wch: 16 }, { wch: 30 }, { wch: 13 }];
+      ws2['!autofilter'] = { ref: ws2['!ref'] };
+      XLSX.utils.book_append_sheet(wb, ws1, 'สรุป');
+      XLSX.utils.book_append_sheet(wb, ws2, 'รายละเอียด');
+      XLSX.writeFile(wb, `งานกระจาย_${this.stamp()}.xlsx`);
+      this.showToast('ดาวน์โหลด Excel เรียบร้อย');
+    },
+    async exportToImage() {
+      if (typeof html2canvas === 'undefined') return this.showToast('โหลดตัวสร้างรูปไม่สำเร็จ (เช็กอินเทอร์เน็ต)', 'error');
+      this.showToast('กำลังสร้างรูปภาพ...');
+      this.capturing = true;
+      try {
+        await nextTick();
+        if (document.fonts && document.fonts.ready) await document.fonts.ready;
+        const el = document.getElementById('sheet');
+        const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff', useCORS: true, windowWidth: 1200,
+          onclone: doc => { const c = doc.getElementById('sheet'); c.style.left = '0'; c.style.position = 'absolute'; } });
+        this.download(canvas.toDataURL('image/png'), `งานกระจาย_${this.stamp()}.png`);
+        this.showToast('บันทึกรูปภาพเรียบร้อย');
+      } catch (err) {
+        console.error(err);
+        this.showToast('สร้างรูปภาพไม่สำเร็จ', 'error');
+      } finally {
+        this.capturing = false;
+      }
+    }
+  }
+}).mount('#app');
+</script>
 </body>
 </html>
